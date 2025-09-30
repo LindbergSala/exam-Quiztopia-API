@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log*
+package-lock.json
+
+.serverless
+.webpack
+
+.DS_Store
+*.swp
+.vscode/
