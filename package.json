@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20.0.0" },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "serverless package",
     "deploy": "serverless deploy",
@@ -12,14 +14,13 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.645.0",
+    "@middy/core": "^6",
     "ajv": "^8.17.1",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "middy": "^5.4.6",
     "uuid": "^11.0.3"
   },
   "devDependencies": {
-    "serverless": "^4.3.2",
-    "serverless-esbuild": "^1.52.1"
+    "serverless": "^4.3.2"
   }
 }

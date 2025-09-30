@@ -1,0 +1,62 @@
+service: quiztopia-api
+frameworkVersion: '4'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-north-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    TABLE_NAME: ${self:custom.tableName}
+    JWT_SECRET: ${env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchWriteItem
+            - dynamodb:Query
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}/index/*
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource:
+            - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/*
+
+# Inbyggd esbuild i v4
+build:
+  esbuild:
+    bundle: true
+    target: node20
+    minify: true
+    sourcemap: true
+    sourcesContent: false
+
+package:
+  individually: true
+  patterns:
+    - '!**/*.test.*'
+    - '!tests/**'
+    - '!*.md'
+    - '!**/*.md'
+    - '!node_modules/.bin/**'
+
+custom:
+  tableName: quiztopia
+
+functions:
+  ping:
+    handler: src/functions/ping.handler
+    events:
+      - httpApi:
+          method: GET
+          path: /ping
