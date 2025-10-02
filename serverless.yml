@@ -11,7 +11,7 @@ provider:
     payload: '2.0'
 
   environment:
-    TABLE_NAME: quiztopia-${sls:stage}
+    TABLE_NAME: quiztopia-${sls:stage}-v1
     JWT_SECRET: ${ssm:/quiztopia/${sls:stage}/JWT_SECRET, env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
 
   # Global IAM-policy (Serverless skapar rätt Lambda-trust-policy åt oss)
@@ -28,8 +28,8 @@ provider:
             - dynamodb:BatchWriteItem
             - dynamodb:Query
           Resource:
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}/index/*
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}-v1
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}-v1/index/*
         # CloudWatch Logs (basic exec)
         - Effect: Allow
           Action:
@@ -61,7 +61,7 @@ package:
     - '!node_modules/.bin/**'
 
 custom:
-  tableName: quiztopia-${sls:stage}
+  tableName: quiztopia-${sls:stage}-v1
 
 functions:
   ping:
@@ -136,7 +136,7 @@ functions:
 
 resources:
   Resources:
-    QuiztopiaTable:
+    QuiztopiaTableV1:
       Type: AWS::DynamoDB::Table
       DeletionPolicy: Retain
       UpdateReplacePolicy: Retain
