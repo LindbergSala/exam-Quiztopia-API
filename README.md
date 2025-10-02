@@ -1,4 +1,6 @@
-# Quiztopia API (Serverless)
+#W.I.P
+
+Quiztopia API (Serverless)
 
 Setup för Serverless-backend (API Gateway + Lambda + DynamoDB).
 Byggs stegvis: auth (JWT), quiz-CRUD, frågor med lat/lon, leaderboard.
