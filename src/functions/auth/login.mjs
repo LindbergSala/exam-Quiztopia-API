@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { json } from "../../lib/response.mjs";
 import { verifyPassword } from "../../lib/crypto.mjs";

@@ -5,14 +5,20 @@ provider:
   name: aws
   runtime: nodejs20.x
   region: eu-north-1
-  stage: ${opt:stage, 'dev'}
+  stage: dev
+
+  httpApi:
+    payload: '2.0'
+
   environment:
-    TABLE_NAME: ${self:custom.tableName}
+    TABLE_NAME: quiztopia-${sls:stage}
     JWT_SECRET: ${ssm:/quiztopia/${sls:stage}/JWT_SECRET, env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
 
+  # Global IAM-policy (Serverless skapar rätt Lambda-trust-policy åt oss)
   iam:
     role:
       statements:
+        # DynamoDB (tabell + GSI)
         - Effect: Allow
           Action:
             - dynamodb:PutItem
@@ -22,24 +28,28 @@ provider:
             - dynamodb:BatchWriteItem
             - dynamodb:Query
           Resource:
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}
-            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.tableName}/index/*
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/quiztopia-${sls:stage}/index/*
+        # CloudWatch Logs (basic exec)
         - Effect: Allow
           Action:
             - logs:CreateLogGroup
             - logs:CreateLogStream
             - logs:PutLogEvents
-          Resource:
-            - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/*
+          Resource: "*"
 
-# Inbyggd esbuild i v4
 build:
   esbuild:
     bundle: true
+    platform: node
     target: node20
     minify: true
     sourcemap: true
     sourcesContent: false
+    external:
+      - jsonwebtoken
+
+
 
 package:
   individually: true
@@ -51,7 +61,7 @@ package:
     - '!node_modules/.bin/**'
 
 custom:
-  tableName: quiztopia
+  tableName: quiztopia-${sls:stage}
 
 functions:
   ping:
@@ -88,7 +98,7 @@ functions:
       - httpApi:
           method: GET
           path: /quizzes/{quizId}
-          
+
   createQuiz:
     handler: src/functions/quizzes/create.handler
     events:
@@ -124,13 +134,12 @@ functions:
           method: GET
           path: /quizzes/{quizId}/leaderboard
 
-
-
-
 resources:
   Resources:
     QuiztopiaTable:
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         TableName: ${self:custom.tableName}
         BillingMode: PAY_PER_REQUEST
@@ -157,4 +166,3 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
-

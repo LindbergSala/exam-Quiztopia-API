@@ -16,7 +16,7 @@
       "parentId": "wrk_quiztopia",
       "name": "Base Environment",
       "data": {
-        "base_url": "https://5id05atcnc.execute-api.eu-north-1.amazonaws.com",
+        "base_url": "https://td4hjujfc8.execute-api.eu-north-1.amazonaws.com",
         "jwt": "",
         "quizId": "",
         "limit": 10
