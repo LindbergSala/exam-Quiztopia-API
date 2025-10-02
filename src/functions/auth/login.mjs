@@ -3,6 +3,7 @@ import { json } from "../../lib/response.mjs";
 import { verifyPassword } from "../../lib/crypto.mjs";
 import { signJwt } from "../../lib/jwt.mjs";
 import { validate } from "../../lib/validator.mjs";
+import { withHttp } from "../../lib/middy.mjs";
 
 const client = new DynamoDBClient({});
 const TABLE_NAME = process.env.TABLE_NAME;
@@ -17,34 +18,28 @@ const schema = {
   }
 };
 
-export const handler = async (event) => {
-  try {
-    const body = JSON.parse(event.body || "{}");
-    const { ok, errors } = validate(schema, body);
-    if (!ok) return json(400, { message: "Invalid payload", errors });
+export const handler = withHttp(async (event) => {
+  const body = event.body; // Middy har redan parsat JSON
+  const { ok, errors } = validate(schema, body);
+  if (!ok) return json(400, { message: "Invalid payload", errors });
 
-    const email = body.email.trim().toLowerCase();
+  const email = body.email.trim().toLowerCase();
 
-    const { Item } = await client.send(new GetItemCommand({
-      TableName: TABLE_NAME,
-      Key: { pk: { S: `USER#${email}` }, sk: { S: "PROFILE" } }
-    }));
+  const { Item } = await client.send(new GetItemCommand({
+    TableName: TABLE_NAME,
+    Key: { pk: { S: `USER#${email}` }, sk: { S: "PROFILE" } }
+  }));
 
-    if (!Item) return json(401, { message: "Invalid credentials" });
+  if (!Item) return json(401, { message: "Invalid credentials" });
 
-    const pwdHash = Item.pwdHash.S;
-    const passOk = await verifyPassword(body.password, pwdHash);
-    if (!passOk) return json(401, { message: "Invalid credentials" });
+  const pwdHash = Item.pwdHash.S;
+  const passOk = await verifyPassword(body.password, pwdHash);
+  if (!passOk) return json(401, { message: "Invalid credentials" });
 
-    const token = signJwt({
-      sub: Item.userId.S,
-      email: Item.email.S,
-      name: Item.name.S
-    }, "7d");
+  const token = signJwt(
+    { sub: Item.userId.S, email: Item.email.S, name: Item.name.S },
+    "7d"
+  );
 
-    return json(200, { token });
-  } catch (err) {
-    console.error("login error", err);
-    return json(500, { message: "Internal error" });
-  }
-};
+  return json(200, { token });
+});

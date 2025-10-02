@@ -1,8 +1,9 @@
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { v4 as uuid } from "uuid";
 import { json } from "../../lib/response.mjs";
 import { hashPassword } from "../../lib/crypto.mjs";
 import { validate } from "../../lib/validator.mjs";
+import { withHttp } from "../../lib/middy.mjs";
 
 const client = new DynamoDBClient({});
 const TABLE_NAME = process.env.TABLE_NAME;
@@ -14,28 +15,26 @@ const schema = {
   properties: {
     email: { type: "string", minLength: 3, maxLength: 200 },
     password: { type: "string", minLength: 6, maxLength: 200 },
-    name: { type: "string", minLength: 1, maxLength: 120 }
+    name: { type: "string", minLength: 1, maxLength: 100 }
   }
 };
 
-export const handler = async (event) => {
+export const handler = withHttp(async (event) => {
+  const body = event.body || {};
+  const { ok, errors } = validate(schema, body);
+  if (!ok) return json(400, { message: "Invalid payload", errors });
+
+  // Normalisera/trimma – undviker case-dubletter mm.
+  const email = String(body.email).trim().toLowerCase();
+  const name = String(body.name).trim();
+  const password = String(body.password);
+
+  const userId = uuid();
+  const now = new Date().toISOString();
+  const pwdHash = await hashPassword(password);
+
   try {
-    const body = JSON.parse(event.body || "{}");
-    const { ok, errors } = validate(schema, body);
-    if (!ok) return json(400, { message: "Invalid payload", errors });
-
-    const email = body.email.trim().toLowerCase();
-    const name = body.name.trim();
-
-    // Finns användaren redan?
-    const userKey = { pk: { S: `USER#${email}` }, sk: { S: "PROFILE" } };
-    const existing = await client.send(new GetItemCommand({ TableName: TABLE_NAME, Key: userKey }));
-    if (existing.Item) return json(409, { message: "User already exists" });
-
-    const pwdHash = await hashPassword(body.password);
-    const userId = uuid();
-    const now = new Date().toISOString();
-
+    // Skapa användaren; skydda mot dubletter
     await client.send(new PutItemCommand({
       TableName: TABLE_NAME,
       Item: {
@@ -47,12 +46,17 @@ export const handler = async (event) => {
         pwdHash: { S: pwdHash },
         createdAt: { S: now }
       },
-      ConditionExpression: "attribute_not_exists(pk)" // dubbel-skydd
+      // Låt det bara gå igenom om posten inte redan finns
+      ConditionExpression: "attribute_not_exists(pk) AND attribute_not_exists(sk)"
     }));
-
-    return json(201, { userId, email, name, createdAt: now });
   } catch (err) {
-    console.error("register error", err);
-    return json(500, { message: "Internal error" });
+    // Vanligast: ConditionalCheckFailedException = e-post finns redan
+    if (err && (err.name === "ConditionalCheckFailedException" || err.Code === "ConditionalCheckFailedException")) {
+      return json(409, { message: "Email already registered" });
+    }
+    console.error("REGISTER_FAILED", err);
+    return json(500, { message: "Internal error", code: "REGISTER_FAILED" });
   }
-};
+
+  return json(201, { userId, email, name, createdAt: now });
+});

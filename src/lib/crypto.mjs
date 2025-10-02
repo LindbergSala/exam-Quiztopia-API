@@ -1,10 +1,45 @@
 import bcrypt from "bcryptjs";
+import { webcrypto as nodeCrypto } from "crypto";
+
+/**
+ * Se till att globalThis.crypto finns och har getRandomValues.
+ * Detta behövs för att bcryptjs ska kunna generera salt i Lambda.
+ */
+function ensureCrypto() {
+  try {
+    if (
+      !globalThis.crypto ||
+      typeof globalThis.crypto.getRandomValues !== "function"
+    ) {
+      globalThis.crypto = nodeCrypto;
+    }
+  } catch {
+    // no-op
+  }
+}
+
+// Sätt fallback ifall bcryptjs ändå inte hittar crypto
+try {
+  ensureCrypto();
+  if (typeof bcrypt.setRandomFallback === "function") {
+    bcrypt.setRandomFallback((len) => {
+      const buf = new Uint8Array(len);
+      globalThis.crypto.getRandomValues(buf);
+      // bcryptjs förväntar sig en array av bytes
+      return Array.from(buf);
+    });
+  }
+} catch {
+  // no-op
+}
 
 export async function hashPassword(plain) {
+  ensureCrypto();
   const salt = await bcrypt.genSalt(10);
   return bcrypt.hash(plain, salt);
 }
 
 export async function verifyPassword(plain, hash) {
+  ensureCrypto();
   return bcrypt.compare(plain, hash);
 }

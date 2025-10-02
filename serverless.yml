@@ -8,7 +8,7 @@ provider:
   stage: ${opt:stage, 'dev'}
   environment:
     TABLE_NAME: ${self:custom.tableName}
-    JWT_SECRET: ${env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
+    JWT_SECRET: ${ssm:/quiztopia/${sls:stage}/JWT_SECRET, env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
 
   iam:
     role:
@@ -59,7 +59,7 @@ functions:
     events:
       - httpApi:
           method: GET
-          path: /ping
+          path: /health
 
   authRegister:
     handler: src/functions/auth/register.handler
@@ -88,6 +88,42 @@ functions:
       - httpApi:
           method: GET
           path: /quizzes/{quizId}
+          
+  createQuiz:
+    handler: src/functions/quizzes/create.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /quizzes
+
+  deleteQuiz:
+    handler: src/functions/quizzes/delete.handler
+    events:
+      - httpApi:
+          method: DELETE
+          path: /quizzes/{quizId}
+
+  addQuestion:
+    handler: src/functions/questions/create.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /quizzes/{quizId}/questions
+
+  submitScore:
+    handler: src/functions/scores/submit.handler
+    events:
+      - httpApi:
+          method: POST
+          path: /quizzes/{quizId}/scores
+
+  getLeaderboard:
+    handler: src/functions/scores/leaderboard.handler
+    events:
+      - httpApi:
+          method: GET
+          path: /quizzes/{quizId}/leaderboard
+
 
 
 

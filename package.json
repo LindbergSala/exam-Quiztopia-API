@@ -14,7 +14,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.645.0",
-    "@middy/core": "^6",
+    "@middy/core": "^6.4.5",
+    "@middy/http-cors": "^6.4.5",
+    "@middy/http-error-handler": "^6.4.5",
+    "@middy/http-json-body-parser": "^6.4.5",
     "ajv": "^8.17.1",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",

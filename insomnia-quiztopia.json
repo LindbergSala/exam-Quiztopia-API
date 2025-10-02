@@ -1,0 +1,199 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-10-01T13:30:00.000Z",
+  "__export_source": "insomnia.desktop.app:2025.10.01",
+  "resources": [
+    {
+      "_id": "wrk_quiztopia",
+      "_type": "workspace",
+      "name": "Quiztopia API",
+      "description": ""
+    },
+    {
+      "_id": "env_quiztopia_base",
+      "_type": "environment",
+      "parentId": "wrk_quiztopia",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "https://5id05atcnc.execute-api.eu-north-1.amazonaws.com",
+        "jwt": "",
+        "quizId": "",
+        "limit": 10
+      }
+    },
+
+    { "_id": "fld_health", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Health" },
+    { "_id": "fld_auth", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Auth" },
+    { "_id": "fld_quizzes", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Quizzes" },
+    { "_id": "fld_questions", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Questions" },
+    { "_id": "fld_scores", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Scores" },
+    { "_id": "fld_leaderboard", "_type": "request_group", "parentId": "wrk_quiztopia", "name": "Leaderboard" },
+
+
+    {
+      "_id": "req_get_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "GET /health",
+      "method": "GET",
+      "url": "{{ base_url }}/health",
+      "parameters": [],
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendDefaultContentType": false
+    },
+
+    {
+      "_id": "req_post_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /auth/register",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/register",
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Alice Example\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\"\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_post_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "POST /auth/login",
+      "method": "POST",
+      "url": "{{ base_url }}/auth/login",
+      "parameters": [],
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\"\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_get_quizzes",
+      "_type": "request",
+      "parentId": "fld_quizzes",
+      "name": "GET /quizzes",
+      "method": "GET",
+      "url": "{{ base_url }}/quizzes",
+      "parameters": [],
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendDefaultContentType": false
+    },
+
+    {
+      "_id": "req_get_quiz_by_id",
+      "_type": "request",
+      "parentId": "fld_quizzes",
+      "name": "GET /quizzes/{quizId}",
+      "method": "GET",
+      "url": "{{ base_url }}/quizzes/{{ quizId }}",
+      "parameters": [],
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendDefaultContentType": false
+    },
+
+    {
+      "_id": "req_post_quiz_create",
+      "_type": "request",
+      "parentId": "fld_quizzes",
+      "name": "POST /quizzes",
+      "method": "POST",
+      "url": "{{ base_url }}/quizzes",
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwt }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Göteborgsquiz\"\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_delete_quiz",
+      "_type": "request",
+      "parentId": "fld_quizzes",
+      "name": "DELETE /quizzes/{quizId}",
+      "method": "DELETE",
+      "url": "{{ base_url }}/quizzes/{{ quizId }}",
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwt }}" }
+      ],
+      "body": {},
+      "authentication": {},
+      "settingSendDefaultContentType": false
+    },
+
+    {
+      "_id": "req_post_add_question",
+      "_type": "request",
+      "parentId": "fld_questions",
+      "name": "POST /quizzes/{quizId}/questions",
+      "method": "POST",
+      "url": "{{ base_url }}/quizzes/{{ quizId }}/questions",
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwt }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"text\": \"Vad heter bron?\",\n  \"answer\": \"Älvsborgsbron\",\n  \"lat\": 57.6969,\n  \"lon\": 11.9126\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_post_submit_score",
+      "_type": "request",
+      "parentId": "fld_scores",
+      "name": "POST /quizzes/{quizId}/scores",
+      "method": "POST",
+      "url": "{{ base_url }}/quizzes/{{ quizId }}/scores",
+      "parameters": [],
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ jwt }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"points\": 1234\n}"
+      },
+      "authentication": {}
+    },
+
+    {
+      "_id": "req_get_leaderboard",
+      "_type": "request",
+      "parentId": "fld_leaderboard",
+      "name": "GET /quizzes/{quizId}/leaderboard",
+      "method": "GET",
+      "url": "{{ base_url }}/quizzes/{{ quizId }}/leaderboard?limit={{ limit }}",
+      "parameters": [],
+      "headers": [],
+      "body": {},
+      "authentication": {},
+      "settingSendDefaultContentType": false
+    }
+  ]
+}
