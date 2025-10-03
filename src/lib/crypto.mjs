@@ -27,7 +27,7 @@ try {
     });
   }
 } catch {
-  // no-op
+  
 }
 
 export async function hashPassword(plain) {

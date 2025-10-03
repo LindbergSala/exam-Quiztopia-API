@@ -24,7 +24,7 @@ export const handler = withHttp(async (event) => {
   const { ok, errors } = validate(schema, body);
   if (!ok) return json(400, { message: "Invalid payload", errors });
 
-  // Normalisera/trimma – undviker case-dubletter mm.
+  // Normalisera/trimma
   const email = String(body.email).trim().toLowerCase();
   const name = String(body.name).trim();
   const password = String(body.password);
