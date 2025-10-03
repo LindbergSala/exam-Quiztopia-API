@@ -14,11 +14,9 @@ provider:
     TABLE_NAME: quiztopia-${sls:stage}-v1
     JWT_SECRET: ${ssm:/quiztopia/${sls:stage}/JWT_SECRET, env:JWT_SECRET, 'CHANGE_ME_DEV_SECRET'}
 
-  # Global IAM-policy (Serverless skapar rätt Lambda-trust-policy åt oss)
   iam:
     role:
       statements:
-        # DynamoDB (tabell + GSI)
         - Effect: Allow
           Action:
             - dynamodb:PutItem

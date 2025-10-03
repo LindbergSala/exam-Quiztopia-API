@@ -1,10 +1,7 @@
 import bcrypt from "bcryptjs";
 import { webcrypto as nodeCrypto } from "crypto";
 
-/**
- * Se till att globalThis.crypto finns och har getRandomValues.
- * Detta behövs för att bcryptjs ska kunna generera salt i Lambda.
- */
+
 function ensureCrypto() {
   try {
     if (
@@ -14,7 +11,7 @@ function ensureCrypto() {
       globalThis.crypto = nodeCrypto;
     }
   } catch {
-    // no-op
+    
   }
 }
 
